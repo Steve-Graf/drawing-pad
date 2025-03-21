@@ -33,7 +33,7 @@
     <button id="reset">Reset</button>
 
     <script>
-        alert('update');
+        alert('update 2');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const resetButton = document.getElementById('reset');
@@ -60,9 +60,11 @@
         ctx.lineJoin = 'round';
 
         function getEventCoordinates(e) {
-            const rect = canvas.getBoundingClientRect(); // Get canvas position relative to the viewport
-            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+            const rect = canvas.getBoundingClientRect(); // Canvas position in viewport
+            const scaleX = canvas.width / rect.width;  // Scale factor for width
+            const scaleY = canvas.height / rect.height; // Scale factor for height
+            const x = ((e.touches ? e.touches[0].pageX : e.pageX) - rect.left) * scaleX;
+            const y = ((e.touches ? e.touches[0].pageY : e.pageY) - rect.top) * scaleY;
             return [x, y];
         }
 
