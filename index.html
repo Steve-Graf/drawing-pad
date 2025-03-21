@@ -3,106 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Drawing App</title>
+    <title>Mobile Drawing</title>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            touch-action: none; /* Prevent scrolling while drawing */
-        }
-        canvas {
-            width: 100vw;
-            height: 100vh;
-            background-color: black;
-            display: block;
-        }
+        body { margin: 0; overflow: hidden; }
+        canvas { touch-action: none; display: block; width: 100vw; height: 100vh; }
         button {
             position: absolute;
             top: 10px;
-            right: 10px;
-            padding: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
             font-size: 16px;
+            border: none;
+            background: red;
+            color: white;
+            border-radius: 5px;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
-    <button id="reset">Reset</button>
-
+    <button onclick="clearCanvas()">Reset</button>
     <script>
-        alert('update 2');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        const resetButton = document.getElementById('reset');
-
-        // Resize canvas to fill screen
-        function resizeCanvas() {
-            const dpr = window.devicePixelRatio || 1; // Get device pixel ratio
-            canvas.width = window.innerWidth * dpr;
-            canvas.height = window.innerHeight * dpr;
-            ctx.scale(dpr, dpr); // Scale the drawing context
-        }
-
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        // Drawing variables
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
         let drawing = false;
-        let lastX = 0;
-        let lastY = 0;
 
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 10;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        function getEventCoordinates(e) {
-            const rect = canvas.getBoundingClientRect(); // Canvas position in viewport
-            const scaleX = canvas.width / rect.width;  // Scale factor for width
-            const scaleY = canvas.height / rect.height; // Scale factor for height
-            const x = ((e.touches ? e.touches[0].pageX : e.pageX) - rect.left) * scaleX;
-            const y = ((e.touches ? e.touches[0].pageY : e.pageY) - rect.top) * scaleY;
-            return [x, y];
-        }
-
-        function startDrawing(e) {
-            e.preventDefault(); // Prevent scrolling
+        function startDraw(event) {
             drawing = true;
-            [lastX, lastY] = getEventCoordinates(e);
+            draw(event);
         }
 
-        function draw(e) {
-            if (!drawing) return;
-            e.preventDefault(); // Prevent scrolling
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            [lastX, lastY] = getEventCoordinates(e);
-            ctx.lineTo(lastX, lastY);
-            ctx.stroke();
-        }
-
-        function stopDrawing() {
+        function endDraw() {
             drawing = false;
+            ctx.beginPath();
         }
 
-        // Event listeners for touch and mouse
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseleave', stopDrawing);
+        function draw(event) {
+            if (!drawing) return;
+            const touch = event.touches[0] || event;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = 'black';
+            ctx.lineTo(touch.clientX, touch.clientY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(touch.clientX, touch.clientY);
+        }
 
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchmove', draw);
-        canvas.addEventListener('touchend', stopDrawing);
-        canvas.addEventListener('touchcancel', stopDrawing);
-
-        // Reset button functionality
-        resetButton.addEventListener('click', () => {
+        function clearCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
+        }
+
+        canvas.addEventListener('touchstart', startDraw);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', endDraw);
     </script>
 </body>
 </html>
