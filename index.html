@@ -3,64 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Drawing</title>
+    <title>Large Drawing Canvas</title>
     <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { touch-action: none; display: block; width: 100vw; height: 100vh; }
-        button {
-            position: absolute;
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            background: black;
+        }
+        #canvasContainer {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* No scrolling */
+            background: black;
+        }
+        canvas {
+            display: block;
+            background: black;
+        }
+        #resetButton {
+            position: fixed;
             top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
+            right: 10px;
+            padding: 10px 15px;
             background: red;
             color: white;
-            border-radius: 5px;
+            border: none;
+            font-size: 16px;
             cursor: pointer;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        #resetButton:hover {
+            background: darkred;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    <button onclick="clearCanvas()">Reset</button>
+    <div id="canvasContainer">
+        <canvas id="drawingCanvas"></canvas>
+    </div>
+    <button id="resetButton">Reset</button>
+
     <script>
-        const canvas = document.getElementById('canvas');
+        const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        let drawing = false;
+        const resetButton = document.getElementById('resetButton');
+        const container = document.getElementById('canvasContainer');
 
-        function startDraw(event) {
-            drawing = true;
-            draw(event);
-        }
+        function resizeCanvas() {
+            // Set canvas size to fit the entire viewport
+            const canvasWidth = window.innerWidth;
+            const canvasHeight = window.outerHeight;
 
-        function endDraw() {
-            drawing = false;
-            ctx.beginPath();
-        }
-
-        function draw(event) {
-            if (!drawing) return;
-            const touch = event.touches[0] || event;
-            ctx.lineWidth = 5;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = 'black';
-            ctx.lineTo(touch.clientX, touch.clientY);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(touch.clientX, touch.clientY);
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
         }
 
         function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        canvas.addEventListener('touchstart', startDraw);
-        canvas.addEventListener('touchmove', draw);
-        canvas.addEventListener('touchend', endDraw);
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = [e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            ctx.strokeStyle = 'white'; // Pen color is white
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineWidth = 10;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY);
+            ctx.stroke();
+
+            [lastX, lastY] = [e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        // Reset button functionality
+        resetButton.addEventListener('click', clearCanvas);
+
+        // Mouse Events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch Events for drawing
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', (e) => {
+            draw(e);
+            e.preventDefault(); // Prevent scrolling while drawing
+        });
+        canvas.addEventListener('touchend', stopDrawing);
     </script>
 </body>
 </html>
