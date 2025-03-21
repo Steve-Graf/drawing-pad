@@ -39,9 +39,12 @@
 
         // Resize canvas to fill screen
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const dpr = window.devicePixelRatio || 1; // Get device pixel ratio
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            ctx.scale(dpr, dpr); // Scale the drawing context
         }
+
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
